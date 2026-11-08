@@ -6,7 +6,7 @@ export const Navbar = () => {
     const handleLogout = async () => {
         try {
             // Petición al backend para limpiar la cookie de sesión
-            const response = await fetch('http://localhost:3000/api/auth/logout', {
+            const response = await fetch('http://localhost:3005/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include' // Importante para enviar/limpiar la cookie
             });

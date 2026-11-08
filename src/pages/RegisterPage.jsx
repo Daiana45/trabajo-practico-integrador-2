@@ -1,49 +1,71 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from '../hooks/useForm';
 
 export const RegisterPage = () => {
     const navigate = useNavigate();
     const [validationErrors, setValidationErrors] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     
-    // Campos según lo que suele pedir el backend del TP1
-    const { values, handleInputChange, handleReset } = useForm({ 
-        username: '', 
-        email: '', 
-        password: '', 
-        profile: { name: '', lastName: '' } 
+    // Estado local directo (sin hook useForm)
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+        first_name: '',
+        last_name: ''
     });
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleReset = () => {
+        setFormData({
+            username: '',
+            email: '',
+            password: '',
+            first_name: '',
+            last_name: ''
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setValidationErrors([]);
 
+        console.log("📤 Enviando al backend:", formData); // Para verificar qué se envía
+
         try {
-            const response = await fetch('http://localhost:3000/api/auth/register', {
+            const response = await fetch('http://localhost:3005/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify(values)
+                body: JSON.stringify(formData)
             });
 
             if (!response.ok) {
                 const errData = await response.json();
-                // Si el backend devuelve errores de express-validator (array), los mostramos
+                console.log("🔴 Respuesta del backend:", errData);
+                
+                let errores = [];
                 if (errData.errors && Array.isArray(errData.errors)) {
-                    setValidationErrors(errData.errors.map(e => e.msg));
+                    errores = errData.errors.map(e => e.mensaje || e.msg || e.message);
+                } else if (errData.message) {
+                    errores = [errData.message];
                 } else {
-                    throw new Error(errData.message || 'Error en el registro');
+                    errores = ['Error desconocido en el registro'];
                 }
+                
+                setValidationErrors(errores);
                 return;
             }
 
-            // Si es 201 Created, limpiamos el formulario y vamos al login
             handleReset();
             navigate('/login');
         } catch (err) {
-            setValidationErrors([err.message]);
+            setValidationErrors(['Error de conexión con el servidor']);
         } finally {
             setIsLoading(false);
         }
@@ -54,20 +76,21 @@ export const RegisterPage = () => {
             <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-96">
                 <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Crear Cuenta</h2>
                 
-                {/* Renderizado de errores de validación con map() */}
                 {validationErrors.length > 0 && (
-                    <ul className="text-red-500 mb-4 text-sm list-disc pl-5 bg-red-50 p-2 rounded">
-                        {validationErrors.map((err, idx) => <li key={idx}>{err}</li>)}
-                    </ul>
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                        <ul className="list-disc pl-5">
+                            {validationErrors.map((err, idx) => (
+                                <li key={idx} className="text-sm font-medium">{err}</li>
+                            ))}
+                        </ul>
+                    </div>
                 )}
 
-                <input name="username" placeholder="Usuario" value={values.username} onChange={handleInputChange} className="w-full p-2 mb-4 border border-gray-300 rounded" required />
-                <input name="email" type="email" placeholder="Email" value={values.email} onChange={handleInputChange} className="w-full p-2 mb-4 border border-gray-300 rounded" required />
-                <input name="password" type="password" placeholder="Contraseña" value={values.password} onChange={handleInputChange} className="w-full p-2 mb-4 border border-gray-300 rounded" required />
-                
-                {/* Datos del perfil (objeto anidado) */}
-                <input name="profile.name" placeholder="Nombre" value={values.profile?.name || ''} onChange={handleInputChange} className="w-full p-2 mb-4 border border-gray-300 rounded" />
-                <input name="profile.lastName" placeholder="Apellido" value={values.profile?.lastName || ''} onChange={handleInputChange} className="w-full p-2 mb-6 border border-gray-300 rounded" />
+                <input name="username" placeholder="Usuario" value={formData.username} onChange={handleInputChange} className="w-full p-2 mb-4 border border-gray-300 rounded" required />
+                <input name="email" type="email" placeholder="Email" value={formData.email} onChange={handleInputChange} className="w-full p-2 mb-4 border border-gray-300 rounded" required />
+                <input name="password" type="password" placeholder="Contraseña (mín 8, mayús y minús)" value={formData.password} onChange={handleInputChange} className="w-full p-2 mb-4 border border-gray-300 rounded" required />
+                <input name="first_name" placeholder="Nombre" value={formData.first_name} onChange={handleInputChange} className="w-full p-2 mb-4 border border-gray-300 rounded" required />
+                <input name="last_name" placeholder="Apellido" value={formData.last_name} onChange={handleInputChange} className="w-full p-2 mb-6 border border-gray-300 rounded" required />
 
                 <button type="submit" disabled={isLoading} className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700 disabled:bg-gray-400 transition duration-200">
                     {isLoading ? 'Registrando...' : 'Crear Cuenta'}

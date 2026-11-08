@@ -3,7 +3,7 @@ import { Navbar } from '../components/Navbar';
 
 export const HomePage = () => {
     // Usamos nuestro custom hook para traer los artículos
-    const { data: articles, isLoading, error } = useFetch('http://localhost:3000/api/articles');
+    const { data: articles, isLoading, error } = useFetch('http://localhost:3005/api/articles');
 
     return (
         <div className="min-h-screen bg-gray-100">

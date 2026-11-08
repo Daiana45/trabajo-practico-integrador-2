@@ -5,7 +5,7 @@ export const useFetch = (url) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    //  Función async declarada FUERA del useEffect (Requisito estricto del PDF)
+    // Función async declarada FUERA del useEffect 
     const fetchData = async () => {
         setIsLoading(true);
         setError(null);
@@ -28,11 +28,11 @@ export const useFetch = (url) => {
         }
     };
 
-    //  El useEffect SOLO invoca la función. Nunca es async directamente.
+    // El useEffect SOLO invoca la función. Nunca es async directamente.
     useEffect(() => {
         fetchData();
-    }, [url]); // El array de dependencias asegura que se ejecute si la URL cambia
+    }, [url]); 
 
-    //  Devolvemos lo que las páginas van a necesitar
+    // Devolvemos lo que las páginas van a necesitar
     return { data, isLoading, error };
 };
